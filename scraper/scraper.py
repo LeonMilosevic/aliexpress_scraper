@@ -10,130 +10,217 @@ from random import randint
 
 class Scraper:
 
-    def __init__(self, account_name: str, account_password: str, driver_path: str):
+    def __init__(self, account_name: str, account_password: str, driver_path: str) -> None:
         self.__account_name = account_name
         self.__account_password = account_password
         self.__driver_path = driver_path
 
-    def close_popup(self, driver: object):
+    def wait(self, driver: object, wait_time, by: By, element_identifier: str) -> None:
         try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "poplayer-content"))
-            )
-            close_popup_element = driver.find_element_by_class_name("btn-close")
-            close_popup_element.click()
-            time.sleep(randint(1,5))
+            # wait for the login popup
+            WebDriverWait(driver, wait_time).until(
+                EC.presence_of_element_located((by, element_identifier)))
         except:
-            print("someting went wrong")
-            driver.quit()
+            driver.quit()  
+
+    def hover_action(self, driver: object, element_identifier:str) -> None:
+        hover = ActionChains(driver).move_to_element(driver.find_element_by_id(element_identifier))
+        hover.perform()
+        time.sleep(randint(2,4))
+        return None
+    
+    def close_popup(self, driver: object) -> None:
+        close_popup_element = driver.find_element_by_class_name("btn-close")
+        close_popup_element.click()
+        time.sleep(randint(1,5))
+        return None
+
+    def signin(self, driver: object):
+        # hover over signin button
+        self.hover_action(driver, "nav-user-account")
+
+        # click signin button
+        driver.find_element_by_class_name("sign-btn").click()
+        
+        # waiting for signin popup
+        self.wait(driver, 20, By.ID, "batman-dialog-wrap")
+        
+        # get email and password fields and impute pw and email 
+        email_input = driver.find_element_by_id("fm-login-id")
+        password_input = driver.find_element_by_id("fm-login-password")
+
+        email_input.send_keys(self.__account_name)
+        time.sleep(randint(2,4))
+
+        password_input.send_keys(self.__account_password)
+        time.sleep(randint(4, 6))
+
+        # click submit btn
+        driver.find_element_by_class_name("fm-button").click()
+
+    def get_my_orders_page(self, driver: object) -> None:
+        # hover over account icon
+        self.hover_action(driver, "nav-user-account")
+
+        # go to my orders
+        driver.find_element_by_link_text("My Orders").click()
+        self.wait(driver, 20, By.LINK_TEXT, 'Orders')
+        time.sleep(randint(2, 4))
+
+        # select 30 elements per page
+        Select(driver.find_element_by_id('simple-pager-page-size')).select_by_value('30')
+        time.sleep(20)
+
+    def scrape_item_text(self, driver: object, xpath: str) -> list:
+        elements = driver.find_elements_by_xpath(xpath)
+        return [x.text for x in elements]
+    
+    def scrape_item_attributes(self, driver: object, xpath: str, attribute: str) -> list:
+        elements = driver.find_elements_by_xpath(xpath)
+        return [x.get_attribute(attribute) for x in elements]
+
+    def main(self):
+        driver = webdriver.Chrome(self.__driver_path)
+        driver.get("https://www.aliexpress.com/")
+
+        # waiting for the popup to show
+        self.wait(driver, 10, By.CLASS_NAME, "poplayer-content")
+
+        # close the popup
+        self.close_popup(driver)
+
+        # sign in to the account
+        self.signin(driver)
+
+        # waiting for the account element to appear,
+        # this will tell us that we are signed in 
+        self.wait(driver, 30, By.CLASS_NAME, "_2kPHY")
+        time.sleep(randint(4,6))
+        self.get_my_orders_page(driver)
+
+        #scrape items
 
 
 
-PATH = "/usr/bin/chromedriver"
-driver = webdriver.Chrome(PATH)
 
-driver.get("https://www.aliexpress.com/")
 
-try:
-    # wating for an element to popup
-    popup = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "poplayer-content"))
-    )
+scraper = Scraper(
+    account_name="test",
+    account_password="test",
+    driver_path="/usr/bin/chromedriver"
+)
+scraper.main()
 
-    close_popup_el = driver.find_element_by_class_name("btn-close")
-    time.sleep(2)
-    close_popup_el.click()
 
-    # hover over signin button
-    time.sleep(4)
-    element_to_hover_over = driver.find_element_by_id("nav-user-account")
 
-    hover = ActionChains(driver).move_to_element(element_to_hover_over)
-    hover.perform()
-    time.sleep(3)
 
-    # click signin button
-    sign_in_btn = driver.find_element_by_class_name("sign-btn")
-    sign_in_btn.click()
 
-    time.sleep(5)
 
-    # get email and password fields and impute pw and email 
-    email_input = driver.find_element_by_id("fm-login-id")
-    password_input = driver.find_element_by_id("fm-login-password")
+# PATH = "/usr/bin/chromedriver"
+# driver = webdriver.Chrome(PATH)
 
-    print("found elements")
-    email_input.send_keys("leonn.milosevic@gmail.com")
-    time.sleep(3)
-    password_input.send_keys("rolex187liu")
-    time.sleep(5)
-    print("sent keys")
-    # click submit btn
-    submit_btn = driver.find_element_by_class_name("fm-button")
-    print("found submit button")
-    submit_btn.click()
-    time.sleep(20)
+# driver.get("https://www.aliexpress.com/")
 
-    # hover over account icon
-    element_to_hover_over = driver.find_element_by_id("nav-user-account")
+# try:
+#     # wating for an element to popup
+#     popup = WebDriverWait(driver, 10).until(
+#         EC.presence_of_element_located((By.CLASS_NAME, "poplayer-content"))
+#     )
 
-    hover = ActionChains(driver).move_to_element(element_to_hover_over)
-    hover.perform()
-    time.sleep(3)
+#     close_popup_el = driver.find_element_by_class_name("btn-close")
+#     time.sleep(2)
+#     close_popup_el.click()
 
-    # go to my orders
-    my_orders_element = driver.find_element_by_link_text("My Orders")
-    my_orders_element.click()
-    time.sleep(20)
+#     # hover over signin button
+#     time.sleep(4)
+#     element_to_hover_over = driver.find_element_by_id("nav-user-account")
 
-    # select 30 elements per page
-    select = Select(driver.find_element_by_id('simple-pager-page-size'))
-    select.select_by_value('30')
-    time.sleep(10)
+#     hover = ActionChains(driver).move_to_element(element_to_hover_over)
+#     hover.perform()
+#     time.sleep(3)
 
-    order_id_elements = driver.find_elements_by_xpath("//td[@class='order-info']/p[@class='first-row']/span[@class='info-body']")
-    order_ids = [x.text for x in order_id_elements]
+#     # click signin button
+#     sign_in_btn = driver.find_element_by_class_name("sign-btn")
+#     sign_in_btn.click()
 
-    order_time_elements = driver.find_elements_by_xpath("//td[@class='order-info']/p[@class='second-row']/span[@class='info-body']")
-    order_times = [x.text for x in order_time_elements]
+#     time.sleep(5)
 
-    store_name_elements = driver.find_elements_by_xpath("//td[@class='store-info']/p[@class='first-row']/span[@class='info-body']")
-    store_names = [x.text for x in store_name_elements]
+#     # get email and password fields and impute pw and email 
+#     email_input = driver.find_element_by_id("fm-login-id")
+#     password_input = driver.find_element_by_id("fm-login-password")
 
-    store_link_elements = driver.find_elements_by_xpath("//td[@class='store-info']/p[@class='second-row']/a[1]")
-    store_links = [x.get_attribute('href') for x in store_link_elements]
+#     print("found elements")
+#     email_input.send_keys("leonn.milosevic@gmail.com")
+#     time.sleep(3)
+#     password_input.send_keys("rolex187liu")
+#     time.sleep(5)
+#     print("sent keys")
+#     # click submit btn
+#     submit_btn = driver.find_element_by_class_name("fm-button")
+#     print("found submit button")
+#     submit_btn.click()
+#     time.sleep(20)
 
-    order_price_elements = driver.find_elements_by_xpath("//td[@class='order-amount']/div[@class='amount-body']/p[@class='amount-num']")
-    order_prices = [x.text for x in order_price_elements]
+#     # hover over account icon
+#     element_to_hover_over = driver.find_element_by_id("nav-user-account")
 
-    item_image_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-left']/a[@class='pic s50']/img")
-    item_images = [x.get_attribute('src') for x in item_image_elements]
+#     hover = ActionChains(driver).move_to_element(element_to_hover_over)
+#     hover.perform()
+#     time.sleep(3)
 
-    item_title_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-title']/a")
-    item_titles = [x.text for x in item_title_elements]
+#     # go to my orders
+#     my_orders_element = driver.find_element_by_link_text("My Orders")
+#     my_orders_element.click()
+#     time.sleep(20)
 
-    item_price_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[1]")
-    item_prices = [x.text for x in item_price_elements]
+#     # select 30 elements per page
+#     select = Select(driver.find_element_by_id('simple-pager-page-size'))
+#     select.select_by_value('30')
+#     time.sleep(10)
 
-    item_price_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[1]")
-    item_prices = [x.text for x in item_price_elements]
+#     order_id_elements = driver.find_elements_by_xpath("//td[@class='order-info']/p[@class='first-row']/span[@class='info-body']")
+#     order_ids = [x.text for x in order_id_elements]
 
-    item_amount_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[2]")
-    item_amounts = [x.text for x in item_amount_elements]
+#     order_time_elements = driver.find_elements_by_xpath("//td[@class='order-info']/p[@class='second-row']/span[@class='info-body']")
+#     order_times = [x.text for x in order_time_elements]
 
-    item_property_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-property']")
-    item_properties = [x.text for x in item_property_elements]
+#     store_name_elements = driver.find_elements_by_xpath("//td[@class='store-info']/p[@class='first-row']/span[@class='info-body']")
+#     store_names = [x.text for x in store_name_elements]
 
-    print(len(order_ids))
-    print(len(order_times))
-    print(len(store_names))
-    print(len(store_links))
-    print(len(order_prices))
-    print(len(item_images))
-    print(len(item_titles))
+#     store_link_elements = driver.find_elements_by_xpath("//td[@class='store-info']/p[@class='second-row']/a[1]")
+#     store_links = [x.get_attribute('href') for x in store_link_elements]
 
-    # TODO: convert to class, create dataframe, return
+#     order_price_elements = driver.find_elements_by_xpath("//td[@class='order-amount']/div[@class='amount-body']/p[@class='amount-num']")
+#     order_prices = [x.text for x in order_price_elements]
 
-except:
-    print("someting went wrong")
-    driver.quit()
+#     item_image_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-left']/a[@class='pic s50']/img")
+#     item_images = [x.get_attribute('src') for x in item_image_elements]
+
+#     item_title_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-title']/a")
+#     item_titles = [x.text for x in item_title_elements]
+
+#     item_price_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[1]")
+#     item_prices = [x.text for x in item_price_elements]
+
+#     item_price_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[1]")
+#     item_prices = [x.text for x in item_price_elements]
+
+#     item_amount_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[2]")
+#     item_amounts = [x.text for x in item_amount_elements]
+
+#     item_property_elements = driver.find_elements_by_xpath("//td[@class='product-sets']/div[@class='product-right']/p[@class='product-property']")
+#     item_properties = [x.text for x in item_property_elements]
+
+#     print(len(order_ids))
+#     print(len(order_times))
+#     print(len(store_names))
+#     print(len(store_links))
+#     print(len(order_prices))
+#     print(len(item_images))
+#     print(len(item_titles))
+
+#     # TODO: convert to class, create dataframe, return
+
+# except:
+#     print("someting went wrong")
+#     driver.quit()
