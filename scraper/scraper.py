@@ -7,6 +7,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 from selenium.webdriver.support.ui import Select
 from random import randint
+import pandas as pd
 
 class Scraper:
 
@@ -71,13 +72,47 @@ class Scraper:
         Select(driver.find_element_by_id('simple-pager-page-size')).select_by_value('30')
         time.sleep(20)
 
-    def scrape_item_text(self, driver: object, xpath: str) -> list:
-        elements = driver.find_elements_by_xpath(xpath)
-        return [x.text for x in elements]
+    def scrape_item(self, driver: object, xpath: str) -> list:
+        title = item.title
+        # elements = driver.find_elements_by_xpath(xpath)
+        # return [x.text for x in elements]
     
     def scrape_item_attributes(self, driver: object, xpath: str, attribute: str) -> list:
         elements = driver.find_elements_by_xpath(xpath)
         return [x.get_attribute(attribute) for x in elements]
+
+    def scraping_data(self, driver: object, xpath_text: list, xpath_attribute: list) -> None:
+        
+        test = self.scrape_item_text(driver, xpath_text[0])
+        print(test)
+        # # create empty lists
+        # order_id, order_time, store_name, store_link, order_price, item_image_url, item_title, item_price, item_amount, item_property = ([] for i in range(10))
+        
+        # # extract lists with text
+        # text_list = [order_id, order_time, store_name, order_price, item_title, item_price, item_amount, item_property]
+        
+        # # extract lists with attribute
+        # attribute_list = [store_link, item_image_url]
+        # attribute_type = ['href', 'src']
+
+        # # note: xpath_text parametar, strings must match order of text_list
+        # for i in range(len(text_list)):
+        #     text_list[i] = self.scrape_item_text(driver, xpath_text[i])
+
+        # # note: xpath_attribute parametar and attribute_type, strings must match order of attribute_list
+        # for i in range(len(attribute_list)):
+        #     attribute_list[i] = self.scrape_item_attributes(driver, xpath_attribute[i], attribute_type[i])
+
+        # print(len(order_id))
+        # print(len(order_time))
+        # print(len(store_name))
+        # print(len(store_link))
+        # print(len(order_price))
+        # print(len(item_image_url))
+        # print(len(item_title))
+        # print(len(item_price))
+        # print(len(item_amount))
+        # print(len(item_property))
 
     def main(self):
         driver = webdriver.Chrome(self.__driver_path)
@@ -99,14 +134,34 @@ class Scraper:
         self.get_my_orders_page(driver)
 
         #scrape items
+        self.scraping_data(
+            driver,
+            xpath_text=["//td[@class='order-info']/p[@class='first-row']/span[@class='info-body']"],
+            xpath_attribute=[""]
+            # xpath_text=[
+            #     "//td[@class='order-info']/p[@class='first-row']/span[@class='info-body']",
+            #     "//td[@class='order-info']/p[@class='second-row']/span[@class='info-body']",
+            #     "//td[@class='store-info']/p[@class='first-row']/span[@class='info-body']",
+            #     "//td[@class='order-amount']/div[@class='amount-body']/p[@class='amount-num']",
+            #     "//td[@class='product-sets']/div[@class='product-right']/p[@class='product-title']/a",
+            #     "//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[1]",
+            #     "//td[@class='product-sets']/div[@class='product-right']/p[@class='product-amount']/span[2]",
+            #     "//td[@class='product-sets']/div[@class='product-right']/p[@class='product-property']"
+            # ],
+            # xpath_attribute=[
+            #     "//td[@class='store-info']/p[@class='second-row']/a[1]",
+            #     "//td[@class='product-sets']/div[@class='product-left']/a[@class='pic s50']/img"
+            #     ]
+             )
+
 
 
 
 
 
 scraper = Scraper(
-    account_name="test",
-    account_password="test",
+    account_name="x",
+    account_password="x",
     driver_path="/usr/bin/chromedriver"
 )
 scraper.main()
