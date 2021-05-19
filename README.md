@@ -3,7 +3,7 @@
 Packag that will help you scrape your bought items from ali-express.  
 
 ### Introduction
-Package to help you scrape items from ali-express, it is a bot made in Selenium, that will login, go to your orders page and export all the items and ther info into a csv file.
+Package to help you scrape items from ali-express, it is a bot made in Selenium, that will login, go to your orders page and export all the items and their info into a csv file.
 
 ### What does it scrape?
 
@@ -27,7 +27,7 @@ Import class:
 from scraper.scraper import Scraper
 ```
 
-##### Scrape ebay for phones:
+##### Scrape ali-express personal orders:
 
 ```python
 scraper = Scraper(
