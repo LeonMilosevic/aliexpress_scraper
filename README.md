@@ -31,9 +31,9 @@ from scraper.scraper import Scraper
 
 ```python
 scraper = Scraper(
-    account_name = 'email@email.com', 
-    account_password = 'password', 
-    driver_path = '/usr/bin/chromedriver',
+    account_name = 'your_email@email.com', 
+    account_password = 'your_password', 
+    driver_path = '/your_path',
     num_of_pages = 5)
 scraper.main()
 ```
