@@ -20,14 +20,23 @@ Package to help you scrape items from ali-express, it is a bot made in Selenium,
 
 ### How to use it?
 
-Install prerequisites from requirements.txt
+### How to use it?
 
-Import class:
+1. Install the scraper
+
+```python
+pip install git+https://github.com/LeonMilosevic/aliexpress_scraper
+```
+
+2. Install prerequisites from requirements.tx
+
+3. Import class:
+
 ```python
 from scraper.scraper import Scraper
 ```
 
-##### Scrape ali-express personal orders:
+4. Scrape ali-express personal orders:
 
 ```python
 scraper = Scraper(
