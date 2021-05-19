@@ -10,6 +10,58 @@ from random import randint
 import pandas as pd
 
 class Scraper:
+    """
+    A class that scrapes ali-express order page, and exports a csv file for further use.
+
+    ...
+
+    Attributes
+    ----------
+    account_name : string
+        your ali-express email address login, example: 'email@email.com'
+
+    account_password : string
+        your ali-express password login, example: 'password123'
+    
+    driver_path : string
+        path to your chrome driver, example: '/usr/bin/chromedriver'
+
+    num_of_pages : int
+        number of pages to be scraped, example: 3
+
+    Methods
+    -------
+    wait():
+        makes the bot wait for a specific trigger on the page
+    
+    hover_action():
+        creates a mouse hover over some element on the page
+
+    close_popup():
+        closes a popup on the page
+
+    signin():
+        bot signs in to your account with init credentials
+
+    get_my_orders_page():
+       proceeds to my order page while on your account
+
+    scrape_items():
+        scrapes a passed page
+    
+    get_all_items():
+       combines all items from all pages
+
+    get_next_page():
+        goes to next page
+    
+    export_csv():
+        creates a csv file in root directory with all the scraped items
+
+    main():
+        main function of the class, utilizes all the previous methods
+
+    """
     def __init__(self, account_name: str, account_password: str, driver_path: str, num_of_pages: int) -> None:
         self.__account_name = account_name
         self.__account_password = account_password
@@ -17,6 +69,17 @@ class Scraper:
         self.__num_of_pages = num_of_pages
 
     def wait(self, driver: object, wait_time, by: By, element_identifier: str) -> None:
+        """This method helps the bot to wait for
+            a specific element to appear before proceeding with the next action
+
+        Args:
+            driver (object): driver object from Selenium,
+            by (object) : By object from Selenium,
+            element_identifier (str) : element we are waiting for
+
+        Returns:
+            None
+        """
         try:
             # wait for the login popup
             WebDriverWait(driver, wait_time).until(
@@ -25,18 +88,43 @@ class Scraper:
             driver.quit()  
 
     def hover_action(self, driver: object, element_identifier:str) -> None:
+        """This method helps the bot to hover over an element
+
+        Args:
+            driver (object): driver object from Selenium,
+            element_identifier (str) : element we are hovering over
+
+        Returns:
+            None
+        """
         hover = ActionChains(driver).move_to_element(driver.find_element_by_id(element_identifier))
         hover.perform()
         time.sleep(randint(2,4))
         return None
     
     def close_popup(self, driver: object) -> None:
+        """This method helps the bot to close a popup when it appears
+
+        Args:
+            driver (object): driver object from Selenium,
+
+        Returns:
+            None
+        """
         close_popup_element = driver.find_element_by_class_name("btn-close")
         close_popup_element.click()
         time.sleep(randint(1,5))
         return None
 
-    def signin(self, driver: object):
+    def signin(self, driver: object) -> None:
+        """This method helps the bot to signin to ali-express
+
+        Args:
+            driver (object): driver object from Selenium,
+
+        Returns:
+            None
+        """
         # hover over signin button
         self.hover_action(driver, "nav-user-account")
 
@@ -60,6 +148,14 @@ class Scraper:
         driver.find_element_by_class_name("fm-button").click()
 
     def get_my_orders_page(self, driver: object) -> None:
+        """This method helps the bot to go to my order page when logged in
+
+        Args:
+            driver (object): driver object from Selenium,
+
+        Returns:
+            None
+        """
         # hover over account icon
         self.hover_action(driver, "nav-user-account")
 
@@ -73,7 +169,14 @@ class Scraper:
         time.sleep(20)
     
     def scrape_items(self, driver: object) -> list:
+        """This method scrapes items from a selected page.
 
+        Args:
+            driver (object): driver object from Selenium,
+
+        Returns:
+            items (list) : list of items from the page
+        """
         items = []
 
         # get order elements
@@ -120,6 +223,14 @@ class Scraper:
         return items
 
     def get_all_items(self, driver: object) -> list:
+        """This method scrapes combines all the items from all the pages.
+
+        Args:
+            driver (object): driver object from Selenium,
+
+        Returns:
+            items (list) : list of items from all pages
+        """
         all_items = []
         
         # scrape each page
@@ -133,15 +244,36 @@ class Scraper:
         return all_items
 
     def get_next_page(self, driver: object) -> None:
+        """This method helps the bot to move to the next page.
+
+        Args:
+            driver (object): driver object from Selenium,
+
+        Returns:
+            None
+        """
         # click next page element
         driver.find_element_by_xpath("//div[@class='ui-pagination-navi util-left']/*[last()]").click()
         time.sleep(randint(12, 15))
 
     def export_csv(self, items: list) -> None:
+        """This method exports a csv file into the root directory.
+
+        Args:
+            driver (object): driver object from Selenium,
+
+        Returns:
+            None
+        """
         df = pd.DataFrame(items)
         df.to_csv('aliexpress_csv', index=False)
 
     def main(self) -> None:
+        """This is the main method where the magic happens, it utilizes all the defined methods and calls them in correct order.
+
+        Returns:
+            None
+        """
         driver = webdriver.Chrome(self.__driver_path)
         driver.get("https://www.aliexpress.com/")
 
